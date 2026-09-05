@@ -1,0 +1,42 @@
+name: PriceTrack
+options:
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+configs:
+  Debug: debug
+  Release: release
+targets:
+  PriceTrack:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: PriceTrack
+        excludes:
+          - "App/Info.plist"
+    info:
+      path: PriceTrack/App/Info.plist
+      properties:
+        NSCameraUsageDescription: "PriceTrack uses your camera to scan grocery receipts so it can read the items and prices."
+        NSPhotoLibraryUsageDescription: "PriceTrack can import a photo of a receipt from your library to read its items and prices."
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    # No entitlements block: the iCloud/CloudKit capability requires a paid Apple Developer
+    # account ($99/year) — a free "Personal Team" can't provision it at all, even for local
+    # testing. See README.md for how to turn it back on once you have a paid account.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.akshay.pricetrack
+        PRODUCT_NAME: PriceTrack
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_PREVIEWS: true
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    scheme:
+      gatherCoverageData: false
