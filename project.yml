@@ -15,6 +15,7 @@ targets:
       - path: PriceTrack
         excludes:
           - "App/Info.plist"
+      - path: Shared
     info:
       path: PriceTrack/App/Info.plist
       properties:
@@ -25,9 +26,20 @@ targets:
           - UIInterfaceOrientationPortrait
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
-    # No entitlements block: the iCloud/CloudKit capability requires a paid Apple Developer
-    # account ($99/year) — a free "Personal Team" can't provision it at all, even for local
-    # testing. See README.md for how to turn it back on once you have a paid account.
+    # App Group + keychain-sharing entitlements, added to support the Share Extension (see the
+    # ShareExtension target below) so a receipt shared from Photos/Files/Mail can be processed
+    # the same way as an in-app scan. NOTE: the iCloud/CloudKit capability above is still off
+    # because a free "Personal Team" account couldn't provision it — App Groups are a different,
+    # generally less-restricted capability, but if Xcode shows a similar signing error here, the
+    # rollback is: delete this `entitlements:` block, the whole `ShareExtension` target below,
+    # and the `dependencies:` line under this target.
+    entitlements:
+      path: PriceTrack/App/PriceTrack.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - "group.com.akshay.pricetrack"
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.akshay.pricetrack.shared"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.akshay.pricetrack
@@ -38,5 +50,56 @@ targets:
         CODE_SIGN_STYLE: Automatic
         ENABLE_PREVIEWS: true
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    dependencies:
+      - target: ShareExtension
+        embed: true
     scheme:
       gatherCoverageData: false
+
+  ShareExtension:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: ShareExtension
+        excludes:
+          - "Info.plist"
+      - path: PriceTrack/Models
+      - path: PriceTrack/Services/ClaudeReceiptParser.swift
+      - path: PriceTrack/Services/CategoryClassifier.swift
+      - path: PriceTrack/Services/PriceNormalizer.swift
+      - path: PriceTrack/Services/KeychainStore.swift
+      - path: PriceTrack/Features/Scan/TextRecognizer.swift
+      - path: PriceTrack/Features/Scan/SmartReceiptReviewView.swift
+      - path: PriceTrack/Features/Scan/ReceiptReviewView.swift
+      - path: PriceTrack/Features/Scan/AssignLineSheet.swift
+      - path: PriceTrack/Features/Shared/ItemPicker.swift
+      - path: PriceTrack/DesignSystem
+      - path: PriceTrack/Extensions
+      - path: Shared
+    info:
+      path: ShareExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Add to PriceTrack
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).ShareViewController"
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsImageWithMaxCount: 1
+              NSExtensionActivationSupportsFileWithMaxCount: 1
+    entitlements:
+      path: ShareExtension/ShareExtension.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - "group.com.akshay.pricetrack"
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.akshay.pricetrack.shared"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.akshay.pricetrack.ShareExtension
+        PRODUCT_NAME: ShareExtension
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        CODE_SIGN_STYLE: Automatic
