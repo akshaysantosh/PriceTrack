@@ -12,10 +12,14 @@ enum KeychainStore {
     private static let account = "anthropic-api-key"
     /// `$(AppIdentifierPrefix)` only gets substituted by Xcode inside `.entitlements` files at
     /// build time — it is NOT resolved in a Swift string literal, so the actual team ID has to
-    /// be spelled out here to match. This is the team ID from the local signing identity
-    /// ("Apple Development: ... (NKRNBPGT9Y)"); if the signing team ever changes, update this
-    /// to match, or the extension silently loses access to the saved API key.
-    private static let accessGroup = "NKRNBPGT9Y.com.akshay.pricetrack.shared"
+    /// be spelled out here to match. Confirmed directly from a signed build's own entitlements
+    /// (`codesign -d --entitlements`) rather than assumed from a certificate's display name —
+    /// those aren't always the same string (an earlier version of this file used the
+    /// certificate's own identifier, "NKRNBPGT9Y", which silently did not match the actual
+    /// application-identifier team prefix, "K5NNTQSVGX", and caused every Keychain read/write
+    /// to fail with errSecMissingEntitlement). If the signing team ever changes, re-verify with
+    /// `codesign -d --entitlements -` on a fresh build rather than trusting the cert name.
+    private static let accessGroup = "K5NNTQSVGX.com.akshay.pricetrack.shared"
 
     private static var baseQuery: [String: Any] {
         [
