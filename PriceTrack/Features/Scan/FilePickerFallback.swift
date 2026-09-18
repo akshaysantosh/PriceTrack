@@ -1,5 +1,4 @@
 import SwiftUI
-import PDFKit
 import UniformTypeIdentifiers
 
 /// Lets the user pick a PDF or image file from Files (including iCloud Drive) as a receipt
@@ -45,23 +44,10 @@ struct FilePickerFallback: View {
         let accessed = url.startAccessingSecurityScopedResource()
         defer { if accessed { url.stopAccessingSecurityScopedResource() } }
 
-        if url.pathExtension.lowercased() == "pdf" {
-            guard let document = PDFDocument(url: url), let page = document.page(at: 0) else {
-                errorMessage = "Couldn't read that PDF — it may still be downloading from iCloud. Try again in a moment."
-                return
-            }
-            // Render at 3x the page's point size so small receipt print stays legible for OCR.
-            let pageBounds = page.bounds(for: .mediaBox)
-            let scale: CGFloat = 3
-            let targetSize = CGSize(width: pageBounds.width * scale, height: pageBounds.height * scale)
-            let image = page.thumbnail(of: targetSize, for: .mediaBox)
-            onPick(image)
-        } else {
-            guard let data = try? Data(contentsOf: url), let image = UIImage(data: data) else {
-                errorMessage = "Couldn't read that file — it may still be downloading from iCloud. Try again in a moment."
-                return
-            }
-            onPick(image)
+        do {
+            onPick(try ReceiptFileLoader.loadImage(from: url))
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 }

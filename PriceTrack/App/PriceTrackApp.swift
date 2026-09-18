@@ -9,6 +9,8 @@ struct PriceTrackApp: App {
     /// the iCloud capability at all, so this defaults to local-only. See README.md.
     static let useCloudKit = false
 
+    @StateObject private var incomingReceipt = IncomingReceiptCoordinator()
+
     let modelContainer: ModelContainer = {
         let schema = Schema([GroceryItem.self, PriceEntry.self, Receipt.self])
         let configuration: ModelConfiguration
@@ -80,8 +82,12 @@ struct PriceTrackApp: App {
     var body: some Scene {
         WindowGroup {
             RootTabView()
+                .environmentObject(incomingReceipt)
                 .preferredColorScheme(.light)
                 .tint(Color.accent)
+                .onOpenURL { url in
+                    incomingReceipt.ingest(url: url)
+                }
         }
         .modelContainer(modelContainer)
     }

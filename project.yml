@@ -26,6 +26,20 @@ targets:
           - UIInterfaceOrientationPortrait
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
+        # Lets PriceTrack appear under "Open In" for images/PDFs from Files and Mail attachments
+        # — works with zero extra entitlements, unlike the Share Extension below (which needs an
+        # App Group). LSHandlerRank Alternate, not Owner: PriceTrack offers itself as an option,
+        # it doesn't try to become the system default for every image/PDF.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: "Receipt Image"
+            LSItemContentTypes: ["public.image"]
+            LSHandlerRank: Alternate
+          - CFBundleTypeName: "Receipt PDF"
+            LSItemContentTypes: ["com.adobe.pdf"]
+            LSHandlerRank: Alternate
+        # We just read the file once (extract data) and never write back to it, so iOS should
+        # copy it into our sandbox rather than hand us an in-place-editing bookmark.
+        LSSupportsOpeningDocumentsInPlace: false
     # App Group + keychain-sharing entitlements, added to support the Share Extension (see the
     # ShareExtension target below) so a receipt shared from Photos/Files/Mail can be processed
     # the same way as an in-app scan. NOTE: the iCloud/CloudKit capability above is still off
