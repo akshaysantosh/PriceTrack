@@ -1,8 +1,10 @@
 import SwiftUI
+import Security
 
 struct SettingsView: View {
     @State private var apiKey: String = KeychainStore.load() ?? ""
     @State private var savedConfirmation = false
+    @State private var saveErrorStatus: OSStatus?
 
     private var hasKey: Bool {
         !apiKey.trimmingCharacters(in: .whitespaces).isEmpty
@@ -25,12 +27,21 @@ struct SettingsView: View {
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
                         .padding(.top, 12)
-                        .onChange(of: apiKey) { savedConfirmation = false }
+                        .onChange(of: apiKey) {
+                            savedConfirmation = false
+                            saveErrorStatus = nil
+                        }
 
                     HStack(spacing: 12) {
                         Button {
-                            KeychainStore.save(apiKey.trimmingCharacters(in: .whitespacesAndNewlines))
-                            savedConfirmation = true
+                            let status = KeychainStore.save(apiKey.trimmingCharacters(in: .whitespacesAndNewlines))
+                            if status == errSecSuccess {
+                                savedConfirmation = true
+                                saveErrorStatus = nil
+                            } else {
+                                savedConfirmation = false
+                                saveErrorStatus = status
+                            }
                         } label: {
                             Text("Save")
                                 .frame(maxWidth: .infinity)
@@ -56,6 +67,12 @@ struct SettingsView: View {
                         Text("Saved to this device's Keychain.")
                             .font(AppFont.caption())
                             .foregroundStyle(Color.accentSuccess)
+                            .padding(.top, 4)
+                    }
+                    if let saveErrorStatus {
+                        Text("Couldn't save to Keychain (error \(saveErrorStatus)). Try again — if it keeps happening, that error code will help track down why.")
+                            .font(AppFont.caption())
+                            .foregroundStyle(Color.calloutWarnText)
                             .padding(.top, 4)
                     }
                 }

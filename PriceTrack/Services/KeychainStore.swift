@@ -26,14 +26,19 @@ enum KeychainStore {
         ]
     }
 
-    static func save(_ value: String) {
+    /// Returns the real `OSStatus` from `SecItemAdd` rather than swallowing it — a caller that
+    /// ignores this return value has no way to know a write silently failed (e.g. a Keychain
+    /// entitlement mismatch) versus actually succeeded, which is exactly how "Saved to this
+    /// device's Keychain" could show even though nothing was actually persisted.
+    @discardableResult
+    static func save(_ value: String) -> OSStatus {
         let data = Data(value.utf8)
         SecItemDelete(baseQuery as CFDictionary)
 
         var attributes = baseQuery
         attributes[kSecValueData as String] = data
         attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-        SecItemAdd(attributes as CFDictionary, nil)
+        return SecItemAdd(attributes as CFDictionary, nil)
     }
 
     static func load() -> String? {
