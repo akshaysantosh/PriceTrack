@@ -1,14 +1,19 @@
 import SwiftUI
 
-/// Akshay's personal design system: warm cream/terracotta palette, card-based layout.
+/// Akshay's personal design system: warm cream/terracotta palette, calm and editorial.
 /// Light-mode only by design (the source system is `color-scheme: light`) — see PriceTrackApp.
+/// Matches Stash's theme (text styles for Dynamic Type, spacing/radius scales, a darker muted
+/// text colour); PriceTrack adds the chart colours and price fonts below.
+///
+/// Accent rule: terracotta is for the one primary action on a screen, the selected state, and
+/// links — not for decoration. Green (`accentSuccess`) means "cheapest".
 extension Color {
     static let ink = Color(hex: "#1a1815")
     static let bodyText = Color(hex: "#2b2926")
     static let textSecondary = Color(hex: "#6b6862")
-    static let textMuted = Color(hex: "#8f8b84")
-    static let textFaint = Color(hex: "#96918a")
-    static let bgPage = Color(hex: "#f7f6f3")
+    /// Metadata and hints. Darkened from the old #8f8b84 so small text stays readable on cream.
+    static let textMuted = Color(hex: "#7a766f")
+    static let bgPage = Color(hex: "#f8f6f1")
     static let bgCard = Color(hex: "#ffffff")
     static let borderCard = Color(hex: "#e5e2da")
     static let accent = Color(hex: "#b5541f")
@@ -33,26 +38,48 @@ extension Color {
     static let chartMaroon = Color(hex: "#8a4a4a")
 }
 
+/// Built on text styles so everything scales with Dynamic Type.
 enum AppFont {
-    static func pageTitle() -> Font { .system(size: 25, weight: .heavy) }
-    static func sectionLabel() -> Font { .system(size: 13, weight: .bold) }
-    static func cardHeadline() -> Font { .system(size: 17, weight: .bold) }
-    static func heroNumber(_ size: CGFloat = 25) -> Font { .system(size: size, weight: .heavy) }
-    static func body() -> Font { .system(size: 14) }
-    static func secondaryDetail() -> Font { .system(size: 13.5) }
-    static func caption() -> Font { .system(size: 12) }
+    static func detailTitle() -> Font { .title2.weight(.bold) }
+    static func cardHeadline() -> Font { .headline.weight(.bold) }
+    static func rowTitle() -> Font { .callout.weight(.semibold) }
+    static func sectionLabel() -> Font { .caption.weight(.semibold) }
+    static func button() -> Font { .callout.weight(.semibold) }
+    static func chip() -> Font { .footnote.weight(.semibold) }
+    static func body() -> Font { .subheadline }
+    static func secondaryDetail() -> Font { .footnote }
+    static func caption() -> Font { .caption }
+    /// A unit price inside a row (the one highlighted number).
+    static func price() -> Font { .callout.weight(.bold) }
+    /// The big cheapest-price figure on a detail screen.
+    static func heroPrice() -> Font { .largeTitle.weight(.bold) }
+}
+
+enum AppSpacing {
+    static let xs: CGFloat = 4
+    static let s: CGFloat = 8
+    static let m: CGFloat = 12
+    static let l: CGFloat = 16
+    static let xl: CGFloat = 24
+    static let xxl: CGFloat = 32
+}
+
+enum AppRadius {
+    static let thumb: CGFloat = 14
+    static let button: CGFloat = 14
+    static let card: CGFloat = 16
+    static let banner: CGFloat = 12
 }
 
 enum AppMetrics {
-    static let cardRadius: CGFloat = 16
-    static let statRadius: CGFloat = 14
-    static let cardPadding: CGFloat = 16
-    static let cardSpacing: CGFloat = 16
+    static let cardRadius = AppRadius.card
+    static let cardPadding = AppSpacing.l
+    static let cardSpacing = AppSpacing.l
 }
 
-/// Per-store accent color for charts/comparison rows. Neutral chip styling is still used
-/// for the primary UI so four brand colors don't clash with the warm palette; this is only
-/// used where a series needs to be visually distinguished, e.g. the price history chart.
+/// Per-store accent color for charts. Neutral chip styling is used for the primary UI so brand
+/// colors don't clash with the warm palette; this is only used where a series needs to be
+/// visually distinguished, e.g. the price history chart.
 extension Store {
     var chartColor: Color {
         switch self {
@@ -64,18 +91,5 @@ extension Store {
         case .meatMarket: return .chartMaroon
         case .asianStore: return .chartGold
         }
-    }
-}
-
-/// GroceryItem.category is free text (not a fixed enum), so its accent color is a stable hash
-/// into the same chart palette rather than a switch — same category always lands on the same
-/// color, with no color list to keep in sync as new categories get typed in.
-extension GroceryItem {
-    var categoryColor: Color {
-        let palette: [Color] = [.accent, .accentSuccess, .chartBlue, .chartPurple, .chartOlive, .chartMaroon, .chartGold]
-        let trimmed = category.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return .textMuted }
-        let hash = trimmed.lowercased().unicodeScalars.reduce(0) { ($0 &* 31) &+ Int($1.value) }
-        return palette[abs(hash) % palette.count]
     }
 }

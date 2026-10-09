@@ -8,40 +8,44 @@ struct PriceHistoryChart: View {
     private struct Point: Identifiable {
         let id = UUID()
         let date: Date
-        let unitPrice: Decimal
+        let unitPrice: Double
         let store: Store
     }
 
     private var points: [Point] {
         entries.compactMap { entry in
             guard let up = PriceNormalizer.unitPrice(for: entry) else { return nil }
-            return Point(date: entry.date, unitPrice: up.value, store: entry.store)
+            return Point(date: entry.date, unitPrice: NSDecimalNumber(decimal: up.value).doubleValue, store: entry.store)
         }
     }
 
-    // chartForegroundStyleScale needs a KeyValuePairs literal, not a Dictionary — Store has a
-    // fixed 4 cases, so this is written out directly rather than built from Store.allCases.
-    private var colorScale: KeyValuePairs<String, Color> {
-        [
-            Store.aldi.displayName: Store.aldi.chartColor,
-            Store.coles.displayName: Store.coles.chartColor,
-            Store.woolworths.displayName: Store.woolworths.chartColor,
-            Store.costco.displayName: Store.costco.chartColor,
-        ]
+    /// Only the stores that actually appear in this item's history, in a stable order, so the
+    /// legend and colours match the data (the app knows seven stores, not four).
+    private var storesPresent: [Store] {
+        let present = Set(points.map(\.store))
+        return Store.allCases.filter { present.contains($0) }
     }
 
     var body: some View {
         Chart(points) { point in
             LineMark(
                 x: .value("Date", point.date),
-                y: .value("Unit price", NSDecimalNumber(decimal: point.unitPrice).doubleValue)
+                y: .value("Unit price", point.unitPrice)
             )
             .foregroundStyle(by: .value("Store", point.store.displayName))
-            .symbol(by: .value("Store", point.store.displayName))
-            .interpolationMethod(.catmullRom)
+            .interpolationMethod(.monotone)
+
+            PointMark(
+                x: .value("Date", point.date),
+                y: .value("Unit price", point.unitPrice)
+            )
+            .foregroundStyle(by: .value("Store", point.store.displayName))
         }
-        .chartForegroundStyleScale(colorScale)
-        .chartLegend(position: .bottom, spacing: 8)
+        .chartForegroundStyleScale(
+            domain: storesPresent.map(\.displayName),
+            range: storesPresent.map(\.chartColor)
+        )
+        .chartLegend(position: .bottom, spacing: AppSpacing.s)
         .chartYAxis {
             AxisMarks(position: .leading)
         }

@@ -21,14 +21,14 @@ struct CalloutBanner: View {
                 .font(AppFont.secondaryDetail())
         }
         .foregroundStyle(foreground)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
+        .padding(.horizontal, AppSpacing.l)
+        .padding(.vertical, AppSpacing.m)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(background)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: AppRadius.banner)
                 .stroke(border, lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.banner))
     }
 }

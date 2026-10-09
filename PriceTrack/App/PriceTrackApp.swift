@@ -12,6 +12,11 @@ struct PriceTrackApp: App {
     @StateObject private var incomingReceipt = IncomingReceiptCoordinator()
 
     let modelContainer: ModelContainer = {
+        #if DEBUG
+        if CommandLine.arguments.contains("-seedSampleData") {
+            return SampleData.makeContainer()
+        }
+        #endif
         let schema = Schema([GroceryItem.self, PriceEntry.self, Receipt.self])
         let configuration: ModelConfiguration
         if let groupURL = AppGroup.containerURL {
@@ -61,22 +66,6 @@ struct PriceTrackApp: App {
             guard fileManager.fileExists(atPath: source.path) else { continue }
             try? fileManager.copyItem(at: source, to: destination)
         }
-    }
-
-    init() {
-        let navAppearance = UINavigationBarAppearance()
-        navAppearance.configureWithOpaqueBackground()
-        navAppearance.backgroundColor = UIColor(Color.bgPage)
-        navAppearance.titleTextAttributes = [.foregroundColor: UIColor(Color.ink)]
-        navAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor(Color.ink)]
-        UINavigationBar.appearance().standardAppearance = navAppearance
-        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
-
-        let tabAppearance = UITabBarAppearance()
-        tabAppearance.configureWithOpaqueBackground()
-        tabAppearance.backgroundColor = UIColor(Color.bgCard)
-        UITabBar.appearance().standardAppearance = tabAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabAppearance
     }
 
     var body: some Scene {

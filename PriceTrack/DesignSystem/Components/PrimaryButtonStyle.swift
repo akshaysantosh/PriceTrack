@@ -1,28 +1,47 @@
 import SwiftUI
 
-/// A soft, tinted button — accent as a light wash + border, not a solid fill.
-/// The design system reserves accent for numbers/labels/links, "not for large fills",
-/// so primary actions use this instead of a solid-filled button.
+/// A soft, tinted button — accent as a light wash + border, not a solid fill — for secondary
+/// actions. The one primary action per screen uses `SolidAccentButtonStyle` below.
 struct PrimaryButtonStyle: ButtonStyle {
     var color: Color = .accent
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 15, weight: .semibold))
+            .font(AppFont.button())
             .foregroundStyle(color)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 16)
+            .padding(.vertical, AppSpacing.m)
+            .padding(.horizontal, AppSpacing.l)
             .frame(maxWidth: .infinity)
             .background(color.opacity(configuration.isPressed ? 0.2 : 0.12))
             .overlay(
-                RoundedRectangle(cornerRadius: AppMetrics.statRadius)
+                RoundedRectangle(cornerRadius: AppRadius.button)
                     .stroke(color.opacity(0.35), lineWidth: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: AppMetrics.statRadius))
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.button))
     }
 }
 
 extension ButtonStyle where Self == PrimaryButtonStyle {
     static var primary: PrimaryButtonStyle { PrimaryButtonStyle() }
     static func primary(_ color: Color) -> PrimaryButtonStyle { PrimaryButtonStyle(color: color) }
+}
+
+/// The single solid-accent call to action on a screen (e.g. "Open" on the detail screen).
+struct SolidAccentButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(AppFont.button())
+            .foregroundStyle(Color.bgCard)
+            .padding(.vertical, AppSpacing.m + 2)
+            .padding(.horizontal, AppSpacing.l)
+            .frame(maxWidth: .infinity)
+            .background(Color.accent.opacity(configuration.isPressed ? 0.85 : (isEnabled ? 1 : 0.4)))
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.button))
+    }
+}
+
+extension ButtonStyle where Self == SolidAccentButtonStyle {
+    static var solidAccent: SolidAccentButtonStyle { SolidAccentButtonStyle() }
 }

@@ -11,9 +11,9 @@ struct CardView<Content: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.bgCard)
         .overlay(
-            RoundedRectangle(cornerRadius: AppMetrics.cardRadius)
+            RoundedRectangle(cornerRadius: AppRadius.card)
                 .stroke(Color.borderCard, lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: AppMetrics.cardRadius))
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.card))
     }
 }

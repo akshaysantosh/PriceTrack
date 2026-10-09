@@ -4,6 +4,8 @@ import SwiftData
 struct ReceiptReviewView: View {
     let lines: [String]
     let receiptImageData: Data?
+    /// Set when Smart Scan failed and this on-device reading is the fallback.
+    let notice: String?
 
     @State private var store: Store = .woolworths
     @State private var date: Date = Date()
@@ -18,14 +20,19 @@ struct ReceiptReviewView: View {
         let id: Int
     }
 
-    init(image: UIImage, lines: [String]) {
+    init(image: UIImage, lines: [String], notice: String? = nil) {
         self.lines = lines
+        self.notice = notice
         self.receiptImageData = image.compressedForReceipt()
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppMetrics.cardSpacing) {
+                if let notice {
+                    CalloutBanner(text: notice, style: .warn)
+                }
+
                 CardView {
                     SectionLabel(text: "Receipt details")
 
@@ -74,12 +81,12 @@ struct ReceiptReviewView: View {
                     Text("Done")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.primary(.accentSuccess))
-                .padding(.top, 4)
+                .buttonStyle(.solidAccent)
+                .padding(.top, AppSpacing.xs)
             }
-            .padding(16)
+            .padding(AppSpacing.l)
         }
-        .background(Color.bgPage)
+        .background(PaperBackground())
         .navigationTitle("Review Receipt")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $activeLine) { selection in
@@ -106,7 +113,7 @@ struct ReceiptReviewView: View {
     private func lineRow(_ line: String, index: Int) -> some View {
         HStack {
             Image(systemName: assignedLines.contains(index) ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(assignedLines.contains(index) ? Color.accentSuccess : Color.textFaint)
+                .foregroundStyle(assignedLines.contains(index) ? Color.accentSuccess : Color.textMuted)
             Text(line)
                 .font(AppFont.body())
                 .foregroundStyle(assignedLines.contains(index) ? Color.textMuted : Color.bodyText)

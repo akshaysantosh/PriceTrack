@@ -18,59 +18,50 @@ struct ReceiptDetailView: View {
 
     var body: some View {
         List {
-            Section {
-                VStack(alignment: .leading, spacing: AppMetrics.cardSpacing) {
-                    if let data = receipt.receiptImageData, let uiImage = UIImage(data: data) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 220)
-                            .clipShape(RoundedRectangle(cornerRadius: AppMetrics.cardRadius))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: AppMetrics.cardRadius)
-                                    .stroke(Color.borderCard, lineWidth: 1)
-                            )
-                    }
-
-                    StatTile(
-                        value: total.currencyString,
-                        label: "\(receipt.store.displayName) · \(receipt.date.formatted(date: .abbreviated, time: .omitted))",
-                        valueColor: .accent
-                    )
-                }
-            }
-            .listRowBackground(Color.bgPage)
-            .listRowSeparator(.hidden)
-            .listRowInsets(EdgeInsets())
+            hero
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: AppSpacing.s, leading: AppSpacing.l, bottom: AppSpacing.s, trailing: AppSpacing.l))
 
             if !entries.isEmpty {
-                Section {
-                    ForEach(entries) { entry in
-                        entryRow(entry)
-                            .listRowBackground(Color.bgCard)
-                            .swipeActions(edge: .trailing) {
-                                Button(role: .destructive) {
-                                    modelContext.delete(entry)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
+                SectionLabel(text: "Items")
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: AppSpacing.l, leading: AppSpacing.l, bottom: AppSpacing.xs, trailing: AppSpacing.l))
+
+                ForEach(entries) { entry in
+                    entryRow(entry)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparatorTint(Color.borderCard)
+                        .listRowInsets(EdgeInsets(top: AppSpacing.m, leading: AppSpacing.l, bottom: AppSpacing.m, trailing: AppSpacing.l))
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                modelContext.delete(entry)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
-                    }
+                        }
                 }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(Color.bgPage)
+        .background(PaperBackground())
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button(role: .destructive) {
-                    showingDeleteConfirm = true
+                Menu {
+                    Button(role: .destructive) {
+                        showingDeleteConfirm = true
+                    } label: {
+                        Label("Delete receipt", systemImage: "trash")
+                    }
                 } label: {
-                    Image(systemName: "trash")
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(Color.ink)
                 }
+                .accessibilityLabel("More actions")
             }
         }
         .confirmationDialog(
@@ -87,13 +78,41 @@ struct ReceiptDetailView: View {
         }
     }
 
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.m) {
+            if let data = receipt.receiptImageData, let uiImage = UIImage(data: data) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .frame(maxHeight: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.card))
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text(receipt.store.displayName)
+                    .font(AppFont.detailTitle())
+                    .foregroundStyle(Color.ink)
+                Text("\(receipt.date.formatted(date: .abbreviated, time: .omitted)) · \(entries.count) item\(entries.count == 1 ? "" : "s")")
+                    .font(AppFont.secondaryDetail())
+                    .foregroundStyle(Color.textSecondary)
+            }
+
+            Text(total.currencyString)
+                .font(AppFont.heroPrice())
+                .foregroundStyle(Color.ink)
+        }
+    }
+
     @ViewBuilder
     private func entryRow(_ entry: PriceEntry) -> some View {
         if let item = entry.item {
-            NavigationLink {
-                ItemDetailView(item: item)
-            } label: {
+            ZStack {
                 entryRowContent(entry)
+                NavigationLink {
+                    ItemDetailView(item: item)
+                } label: { EmptyView() }
+                .opacity(0)
             }
         } else {
             entryRowContent(entry)
@@ -102,9 +121,9 @@ struct ReceiptDetailView: View {
 
     private func entryRowContent(_ entry: PriceEntry) -> some View {
         HStack {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text(entry.item?.name ?? "Unknown item")
-                    .font(AppFont.body())
+                    .font(AppFont.rowTitle())
                     .foregroundStyle(Color.ink)
                 Text(quantityLabel(entry))
                     .font(AppFont.caption())
@@ -112,11 +131,9 @@ struct ReceiptDetailView: View {
             }
             Spacer()
             Text(entry.price.currencyString)
-                .font(AppFont.body())
-                .fontWeight(.semibold)
+                .font(AppFont.rowTitle())
                 .foregroundStyle(Color.ink)
         }
-        .padding(.vertical, 4)
     }
 
     private func quantityLabel(_ entry: PriceEntry) -> String {

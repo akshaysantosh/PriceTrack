@@ -26,8 +26,6 @@ struct SmartReceiptReviewView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppMetrics.cardSpacing) {
-                PageHeader(title: "Confirm Items")
-
                 CardView {
                     SectionLabel(text: "Receipt details")
 
@@ -77,14 +75,14 @@ struct SmartReceiptReviewView: View {
                         Text("Save \(selections.count) Item\(selections.count == 1 ? "" : "s")")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.primary(.accentSuccess))
+                    .buttonStyle(.solidAccent)
                     .disabled(selections.isEmpty)
                 }
             }
-            .padding(16)
+            .padding(AppSpacing.l)
         }
-        .background(Color.bgPage)
-        .navigationTitle("")
+        .background(PaperBackground())
+        .navigationTitle("Confirm Items")
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -99,7 +97,7 @@ struct SmartReceiptReviewView: View {
     private func itemRow(_ item: ParsedReceiptItem, selected: Bool) -> some View {
         HStack {
             Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(selected ? Color.accentSuccess : Color.textFaint)
+                .foregroundStyle(selected ? Color.accentSuccess : Color.textMuted)
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name)
                     .font(AppFont.body())
