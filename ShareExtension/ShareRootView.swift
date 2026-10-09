@@ -54,7 +54,7 @@ struct ShareRootView: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.bgPage)
+        .background(PaperBackground())
     }
 
     @ViewBuilder
