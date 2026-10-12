@@ -25,3 +25,5 @@ xcuserdata/
 *.jpg
 *.HEIC
 *.heic
+# ...but README screenshots are meant to be tracked
+!screenshots/*.jpg
